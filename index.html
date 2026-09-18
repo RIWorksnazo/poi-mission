@@ -3,113 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ポイすてっ！2 - MISSION STATUS</title>
+    <title>廃棄物処理タスク管理</title>
     <style>
-        /* アングラ×ポップなダークデザイン */
+        /* 無骨でフラットな工業・業務デザイン */
         body {
-            background-color: #1a1a1a;
-            color: #eeeeee;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0f0f0f;
+            color: #d0d0d0;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
             margin: 0;
-            padding: 30px;
-        }
-        h1 {
-            text-align: center;
-            color: #00ffff; /* ネオンシアン */
-            letter-spacing: 2px;
-            font-size: 36px;
-        }
-        .score-board {
-            text-align: center;
-            font-size: 28px;
-            font-weight: bold;
-            margin: 30px 0;
             padding: 20px;
-            background: #2a2a2a;
-            border-radius: 8px;
-            border: 2px solid #333;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
         }
-        .score-number {
-            color: #ff007f; /* ネオンピンク */
-            font-size: 48px;
-            text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);
-        }
-        
-        /* ミッションリストの装飾 */
-        #mission-container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .mission-item {
-            background: #252525;
-            margin-bottom: 20px;
-            padding: 20px;
-            border-radius: 6px;
-            border-left: 5px solid #555;
+
+        /* ヘッダー：単なる線と文字だけの簡素な表示 */
+        .header-area {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            transition: all 0.5s ease;
+            align-items: baseline;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
         }
-        .mission-item.cleared {
-            border-left: 5px solid #ff007f;
-            background: #331424;
-            box-shadow: 0 0 15px rgba(255, 0, 127, 0.2);
+        h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #fff;
+            letter-spacing: 2px;
+        }
+        .score-board {
+            font-size: 16px;
+        }
+        .score-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ff9800; /* 作業現場の警戒色（オレンジ） */
+            margin-left: 10px;
+        }
+
+        /* ミッション一覧：マス目レイアウト */
+        #mission-container {
+            display: grid;
+            /* 1つのマスを最低110pxとし、画面幅に合わせて自動で列を増やす */
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 6px; /* 隙間を詰めて密度を上げる */
+        }
+
+        /* 各マス目のデザイン */
+        .mission-item {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            aspect-ratio: 1 / 1; /* 正方形 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            text-align: center;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
         }
         .mission-name {
-            font-size: 22px;
+            font-size: 13px;
+            font-weight: bold;
+            line-height: 1.3;
+            word-break: keep-all;
+            z-index: 2;
         }
         .mission-points {
-            font-size: 22px;
-            font-weight: bold;
-            color: #00ffff;
+            font-size: 11px;
+            color: #666;
+            margin-top: 8px;
+            z-index: 2;
         }
-        
-        /* 更新中の表示 */
+
+        /* クリア済みのマス（ハンコが押されたような表現） */
+        .mission-item.cleared {
+            background: #111;
+            border-color: #2e7d32; /* くすんだ緑 */
+        }
+        .mission-item.cleared .mission-name,
+        .mission-item.cleared .mission-points {
+            color: #444; /* 文字を暗くして目立たなくする */
+        }
+        /* クリアスタンプ */
+        .mission-item.cleared::after {
+            content: "済";
+            position: absolute;
+            font-size: 50px;
+            font-weight: bold;
+            color: rgba(76, 175, 80, 0.4);
+            transform: rotate(-20deg);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* 画面右下の控えめなステータス表示 */
         #loading {
-            text-align: center;
-            color: #888;
-            font-size: 14px;
-            margin-top: 20px;
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            font-size: 11px;
+            color: #444;
         }
     </style>
 </head>
 <body>
 
-    <h1>MISSION STATUS</h1>
-
-    <div class="score-board">
-        TOTAL POINTS<br>
-        <span class="score-number" id="total-score">0</span> pt
+    <div class="header-area">
+        <h1>TASK STATUS</h1>
+        <div class="score-board">
+            TOTAL<span class="score-number" id="total-score">0</span> pt
+        </div>
     </div>
 
     <div id="mission-container">
-        <div style="text-align: center; color: #888;">データを読み込み中...</div>
+        <!-- Javascriptでマス目がここに並びます -->
     </div>
     
-    <div id="loading">● 自動更新待機中...</div>
+    <div id="loading">SYS_WAITING...</div>
 
     <script>
-        // 取得したスプレッドシートのWebアプリURL
-        const API_URL = "https://script.google.com/macros/s/AKfycbw2Z9mto7qcjuiL7-qB-VDhiu9plyDoKTFsIJa4EWnI40TOpkxbX6uzXW0kOcFuATpU/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbzjkVymYQZbGL8rk-QsgLtaHAk3lVANi7pf2TC5HBBdkeAj6EKJYbxV6VVT5McI7gNL/exec";
 
-        // データを取得して画面を描画する関数
         async function fetchMissions() {
             try {
-                document.getElementById('loading').innerText = "🔄 データ取得中...";
                 const response = await fetch(API_URL);
                 const missions = await response.json();
-                
                 render(missions);
-                document.getElementById('loading').innerText = "● 自動更新待機中...";
+                document.getElementById('loading').innerText = "SYS_ONLINE";
             } catch (error) {
-                console.error("データの取得に失敗しました:", error);
-                document.getElementById('loading').innerText = "⚠️ 通信エラー：再試行します";
+                document.getElementById('loading').innerText = "SYS_ERROR";
             }
         }
 
-        // 画面の更新処理
         function render(missions) {
             const container = document.getElementById('mission-container');
             let totalScore = 0;
@@ -120,7 +146,7 @@
                 
                 htmlContent += `
                     <div class="mission-item ${m.cleared ? 'cleared' : ''}">
-                        <div class="mission-name">${m.cleared ? '✅' : '🔒'} ${m.name}</div>
+                        <div class="mission-name">${m.name}</div>
                         <div class="mission-points">${m.points} pt</div>
                     </div>
                 `;
@@ -130,11 +156,8 @@
             document.getElementById('total-score').innerText = totalScore;
         }
 
-        // 初回読み込み
         fetchMissions();
-
-        // 3秒ごとに自動更新（3000ミリ秒）
-        setInterval(fetchMissions, 1000);
+        setInterval(fetchMissions, 1000); // 1秒ごとに更新
     </script>
 </body>
 </html>
