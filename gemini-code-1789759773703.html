@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ポイすてっ！2 - MISSION STATUS</title>
+    <style>
+        /* アングラ×ポップなダークデザイン */
+        body {
+            background-color: #1a1a1a;
+            color: #eeeeee;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #00ffff; /* ネオンシアン */
+            letter-spacing: 2px;
+            user-select: none;
+        }
+        .score-board {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 15px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            border: 2px solid #333;
+        }
+        .score-number {
+            color: #ff007f; /* ネオンピンク */
+            font-size: 32px;
+        }
+        
+        /* ミッションリストの装飾 */
+        .mission-item {
+            background: #252525;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 5px solid #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .mission-item.cleared {
+            border-left: 5px solid #ff007f;
+            background: #331424;
+        }
+        .mission-name {
+            font-size: 18px;
+        }
+        .mission-points {
+            font-weight: bold;
+            color: #00ffff;
+        }
+
+        /* 運営用操作パネル（初期状態は非表示） */
+        #admin-panel {
+            display: none;
+            margin-top: 40px;
+            padding: 20px;
+            background: #2a2a2a;
+            border: 2px dashed #ff007f;
+            border-radius: 8px;
+        }
+        .admin-btn {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .admin-btn.active {
+            background: #ff007f;
+        }
+        .reset-btn {
+            background: #ff4444;
+            width: 100%;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- タイトル（ここを3回タップで運営モード起動） -->
+    <h1 id="title" onclick="tapTitle()">MISSION STATUS</h1>
+
+    <div class="score-board">
+        TOTAL POINTS<br>
+        <span class="score-number" id="total-score">0</span> pt
+    </div>
+
+    <div id="mission-container">
+        <!-- ここにJavaScriptでミッション一覧が自動生成されます -->
+    </div>
+
+    <!-- 運営用パネル -->
+    <div id="admin-panel">
+        <h3 style="color: #ff007f; margin-top: 0;">🛠 運営操作パネル</h3>
+        <p style="font-size: 12px; color: #aaa;">該当ミッションのボタンを押してクリア判定を切り替えます</p>
+        <div id="admin-buttons"></div>
+        <button class="admin-btn reset-btn" onclick="resetAll()">全データリセット（初期化）</button>
+        <button class="admin-btn" style="width: 100%; margin-top: 10px; background: #555;" onclick="closeAdmin()">運営パネルを閉じる</button>
+    </div>
+
+    <script>
+        // --- 1. ミッションの設定（ここで問題名とポイントを自由に編集できます） ---
+        const initialMissions = [
+            { id: 1, name: "最初のゴミを分別せよ", points: 10, cleared: false },
+            { id: 2, name: "隠された暗号を解読せよ", points: 20, cleared: false },
+            { id: 3, name: "ネオンサインを点灯させよ", points: 30, cleared: false },
+            { id: 4, name: "最終ミッション：脱出せよ", points: 50, cleared: false }
+        ];
+
+        const ADMIN_PASSWORD = "2026"; // 運営パネルを開くためのパスワード
+
+        // --- 2. データの読み込み・保存 ---
+        let missions = JSON.parse(localStorage.getItem('poi_missions')) || initialMissions;
+        let tapCount = 0;
+
+        function saveData() {
+            localStorage.setItem('poi_missions', JSON.stringify(missions));
+            render();
+        }
+
+        // --- 3. 画面の描画 ---
+        function render() {
+            const container = document.getElementById('mission-container');
+            const adminButtons = document.getElementById('admin-buttons');
+            const scoreElement = document.getElementById('total-score');
+            
+            container.innerHTML = '';
+            adminButtons.innerHTML = '';
+            let totalScore = 0;
+
+            missions.forEach((m, index) => {
+                // ポイント計算
+                if (m.cleared) totalScore += m.points;
+
+                // プレイヤー用リストの生成
+                const div = document.createElement('div');
+                div.className = `mission-item ${m.cleared ? 'cleared' : ''}`;
+                div.innerHTML = `
+                    <div class="mission-name">${m.cleared ? '✅' : '🔒'} ${m.name}</div>
+                    <div class="mission-points">${m.points} pt</div>
+                `;
+                container.appendChild(div);
+
+                // 運営用ボタンの生成
+                const btn = document.createElement('button');
+                btn.className = `admin-btn ${m.cleared ? 'active' : ''}`;
+                btn.innerText = `[${m.id}] ${m.cleared ? 'クリア取消' : 'クリアにする'}`;
+                btn.onclick = () => toggleClear(index);
+                adminButtons.appendChild(btn);
+            });
+
+            scoreElement.innerText = totalScore;
+        }
+
+        // --- 4. 運営用アクション ---
+        function toggleClear(index) {
+            missions[index].cleared = !missions[index].cleared;
+            saveData();
+        }
+
+        function resetAll() {
+            if(confirm("本当に全てのポイントとクリア状況をリセットしますか？（次の参加者へ渡す時用）")) {
+                missions = JSON.parse(JSON.stringify(initialMissions));
+                saveData();
+                closeAdmin();
+            }
+        }
+
+        // --- 5. 運営モードの隠しコマンド（タイトル3回タップ） ---
+        function tapTitle() {
+            tapCount++;
+            if (tapCount >= 3) {
+                tapCount = 0;
+                let pass = prompt("運営用パスワードを入力してください");
+                if (pass === ADMIN_PASSWORD) {
+                    document.getElementById('admin-panel').style.display = 'block';
+                } else if (pass !== null) {
+                    alert("パスワードが違います");
+                }
+            }
+        }
+
+        function closeAdmin() {
+            document.getElementById('admin-panel').style.display = 'none';
+        }
+
+        // 初回読み込み時の描画
+        render();
+    </script>
+</body>
+</html>
