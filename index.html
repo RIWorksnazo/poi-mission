@@ -12,18 +12,25 @@
             font-family: 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
             padding: 20px;
+            /* 1画面に収めるための設定 */
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
         h1 {
             text-align: center;
             color: #00ffff;
             letter-spacing: 2px;
+            margin: 0 0 10px 0;
+            font-size: 28px;
         }
         .score-board {
             text-align: center;
-            font-size: 24px;
             font-weight: bold;
-            margin: 20px 0;
-            padding: 15px;
+            margin-bottom: 15px;
+            padding: 10px;
             background: #2a2a2a;
             border-radius: 8px;
             border: 2px solid #333;
@@ -31,35 +38,54 @@
         .score-number {
             color: #ff007f;
             font-size: 40px;
+            line-height: 1;
+        }
+        
+        /* ▼▼▼ マス目（グリッド）レイアウト ▼▼▼ */
+        #mission-container {
+            display: grid;
+            /* 列数を自動調整し、マスを敷き詰める */
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            /* 縦幅も画面の余白に合わせて均等に伸ばす */
+            grid-auto-rows: 1fr;
+            gap: 15px;
+            flex-grow: 1;
+            padding: 5px;
         }
         .mission-item {
             background: #252525;
-            margin-bottom: 15px;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 5px solid #555;
+            border-radius: 8px;
+            border: 3px solid #444;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            text-align: center;
+            padding: 10px;
             transition: all 0.3s;
         }
         .mission-item.cleared {
-            border-left: 5px solid #ff007f;
+            border-color: #ff007f;
             background: #331424;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
         }
         .mission-name {
-            font-size: 20px;
+            font-size: 16px;
+            margin-bottom: 8px;
+            font-weight: bold;
         }
         .mission-points {
             font-weight: bold;
             color: #00ffff;
-            font-size: 18px;
+            font-size: 22px;
         }
+        /* ▲▲▲ マス目の設定ここまで ▲▲▲ */
+
         #status {
             text-align: center;
             color: #888;
             font-size: 12px;
-            margin-top: 20px;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -68,21 +94,19 @@
     <h1>MISSION STATUS</h1>
 
     <div class="score-board">
-        TOTAL POINTS<br>
-        <span class="score-number" id="total-score">0</span> pt
+        TOTAL <span class="score-number" id="total-score">0</span> pt
     </div>
 
     <div id="mission-container">
-        <p style="text-align:center;">データを読み込み中...</p>
+        <p style="text-align:center; grid-column: 1 / -1;">データを読み込み中...</p>
     </div>
     
     <div id="status">通信待機中...</div>
 
     <script>
-        // ▼▼▼ 唯一の変更箇所 ▼▼▼
-        // コピーした「ウェブアプリのURL」を、以下の " " の中に貼り付けてください。
+        // ▼▼▼ ここにGASのURLを貼り直してください ▼▼▼
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
-        // ▲▲▲ 唯一の変更箇所 ▲▲▲
+        // ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲
 
         async function fetchData() {
             try {
@@ -94,7 +118,7 @@
                 document.getElementById('status').innerText = "最新のデータです";
             } catch (error) {
                 console.error("通信エラー:", error);
-                document.getElementById('status').innerText = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
+                document.getElementById('status').innerText = "通信エラーが発生しました。URLや設定を確認してください。";
             }
         }
 
@@ -111,7 +135,7 @@
                 const div = document.createElement('div');
                 div.className = `mission-item ${m.cleared ? 'cleared' : ''}`;
                 div.innerHTML = `
-                    <div class="mission-name">${m.cleared ? '✅' : '🔒'} ${m.name}</div>
+                    <div class="mission-name">${m.cleared ? '✅' : '🔒'}<br>${m.name}</div>
                     <div class="mission-points">${m.points} pt</div>
                 `;
                 container.appendChild(div);
@@ -120,13 +144,11 @@
             scoreElement.innerText = totalScore;
         }
 
-        // 初回読み込みと自動更新の設定
-        if(GAS_URL !== "ここにURLを貼り付けます") {
+        if(GAS_URL !== "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec") {
             fetchData();
-            // 5秒ごとにスプレッドシートの最新状況を自動取得
             setInterval(fetchData, 5000);
         } else {
-            document.getElementById('mission-container').innerHTML = "<p style='text-align:center;color:red;'>GASのURLが設定されていません</p>";
+            document.getElementById('mission-container').innerHTML = "<p style='text-align:center;color:red;grid-column:1/-1;'>GASのURLが設定されていません</p>";
         }
     </script>
 </body>
