@@ -49,6 +49,41 @@
             font-size: 32px;
         }
 
+        /* ▼▼ 追加：左上のコントロール部分 ▼▼ */
+        .top-controls {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .total-cleared {
+            font-size: 24px;
+            color: #00ffff;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #333;
+        }
+        .toggle-label {
+            font-size: 14px;
+            color: #ccc;
+            cursor: pointer;
+            background: #333;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            border: 1px solid #555;
+            user-select: none;
+        }
+        .toggle-label input {
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        /* ミッション名を隠すためのCSSマジック */
+        .hide-names .m-name-text {
+            display: none;
+        }
+
         /* 右側の給料表示 */
         .money-board {
             text-align: center;
@@ -97,6 +132,9 @@
             font-size: 14px;
             font-weight: bold;
         }
+        .m-name-text {
+            margin-top: 5px;
+        }
 
         #status {
             text-align: center;
@@ -114,6 +152,17 @@
     <!-- 左画面：ミッション状況 -->
     <div id="left-panel">
         <h1>MISSION STATUS</h1>
+        
+        <!-- ▼▼ 追加：クリア数とスイッチ ▼▼ -->
+        <div class="top-controls">
+            <div class="total-cleared">
+                クリア数: <span id="cleared-count" style="font-size: 32px; color: #ff007f;">0</span> 問
+            </div>
+            <label class="toggle-label">
+                <input type="checkbox" id="toggle-names" checked> ミッション名を表示する
+            </label>
+        </div>
+
         <div id="mission-container">
             <p style="text-align:center; grid-column: 1 / -1;">データを読み込み中...</p>
         </div>
@@ -135,6 +184,16 @@
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
         
         let isFetching = false;
+
+        // ▼▼ 追加：スイッチを押した時の動作 ▼▼
+        document.getElementById('toggle-names').addEventListener('change', function(e) {
+            const container = document.getElementById('mission-container');
+            if (e.target.checked) {
+                container.classList.remove('hide-names'); // チェックあり：名前を表示
+            } else {
+                container.classList.add('hide-names');    // チェックなし：名前を隠す
+            }
+        });
 
         async function fetchData() {
             if (isFetching) return; 
@@ -158,17 +217,29 @@
 
         function render(data) {
             const container = document.getElementById('mission-container');
+            const countElement = document.getElementById('cleared-count');
             
-            // 「問」の表示を完全に削除し、ミッション名と状態だけを描画
             let htmlString = "";
+            let clearedCount = 0; // 追加：クリアした数を数える変数
+
             data.missions.forEach(m => {
+                // チェックがついていたら（クリアしていたら）＋1する
+                if (m.cleared) {
+                    clearedCount++;
+                }
+
                 htmlString += `
                     <div class="mission-item ${m.cleared ? 'cleared' : ''}">
-                        <div class="mission-name">${m.cleared ? '✅' : '🔒'}<br>${m.name}</div>
+                        <div class="mission-name">
+                            ${m.cleared ? '✅' : '🔒'}
+                            <div class="m-name-text">${m.name}</div>
+                        </div>
                     </div>
                 `;
             });
+            
             container.innerHTML = htmlString;
+            countElement.innerText = clearedCount; // クリア数を画面に反映
 
             // 右側の給料更新
             const moneyElement = document.getElementById('total-money');
