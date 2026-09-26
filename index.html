@@ -49,7 +49,6 @@
             font-size: 32px;
         }
 
-        /* ▼▼ 追加：左上のコントロール部分 ▼▼ */
         .top-controls {
             text-align: center;
             margin-bottom: 15px;
@@ -63,25 +62,6 @@
             padding: 10px;
             border-radius: 8px;
             border: 2px solid #333;
-        }
-        .toggle-label {
-            font-size: 14px;
-            color: #ccc;
-            cursor: pointer;
-            background: #333;
-            padding: 5px 15px;
-            border-radius: 20px;
-            display: inline-block;
-            border: 1px solid #555;
-            user-select: none;
-        }
-        .toggle-label input {
-            margin-right: 5px;
-            cursor: pointer;
-        }
-        /* ミッション名を隠すためのCSSマジック */
-        .hide-names .m-name-text {
-            display: none;
         }
 
         /* 右側の給料表示 */
@@ -153,14 +133,10 @@
     <div id="left-panel">
         <h1>MISSION STATUS</h1>
         
-        <!-- ▼▼ 追加：クリア数とスイッチ ▼▼ -->
         <div class="top-controls">
             <div class="total-cleared">
                 クリア数: <span id="cleared-count" style="font-size: 32px; color: #ff007f;">0</span> 問
             </div>
-            <label class="toggle-label">
-                <input type="checkbox" id="toggle-names" checked> ミッション名を表示する
-            </label>
         </div>
 
         <div id="mission-container">
@@ -170,7 +146,7 @@
 
     <!-- 右画面：給料（円） -->
     <div id="right-panel">
-        <h2>本日の給料</h2>
+        <h2>SALARY</h2>
         <div class="money-board">
             <div style="font-size: 24px; color: #ccc;">現在の給料</div>
             <div class="money-number"><span id="total-money">0</span> 円</div>
@@ -179,46 +155,28 @@
     
     <div id="status">通信待機中...</div>
 
-   <script>
-        // ▼▼▼ ここにGASのURLを貼り直してください ▼▼▼
+    <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
         
         let isFetching = false;
-
-        document.getElementById('toggle-names').addEventListener('change', function(e) {
-            const container = document.getElementById('mission-container');
-            if (e.target.checked) {
-                container.classList.remove('hide-names');
-            } else {
-                container.classList.add('hide-names');
-            }
-        });
 
         async function fetchData() {
             if (isFetching) return; 
             isFetching = true;
 
             try {
-                // ▼変更：「更新中...」と毎回表示させない（チカチカすると重く感じるため）
-                // document.getElementById('status').innerText = "更新中..."; 
-                
                 const response = await fetch(GAS_URL);
                 const data = await response.json();
                 
                 render(data);
-                
-                // ▼変更：通信が成功している間は、目立たない文字にしておく
                 document.getElementById('status').innerText = "通信状態：良好🟢";
             } catch (error) {
                 console.error("通信エラー:", error);
                 document.getElementById('status').innerText = "通信エラーが発生しました🔴";
             } finally {
                 isFetching = false;
-                
-                // ▼変更：5000（5秒）から 2000（2秒）に短縮！
-                setTimeout(fetchData, 2000); 
+                setTimeout(fetchData, 2000); // 2秒間隔で高速更新
             }
-        }
         }
 
         function render(data) {
@@ -229,12 +187,13 @@
             let clearedCount = 0; 
 
             data.missions.forEach(m => {
-                // ▼▼ 追加：スプレッドシートのD列にチェックが無い場合は、画面に出さずにスキップする ▼▼
-                if (!m.visible) return;
-
+                // 1. まず、クリア済み(D列)なら表示・非表示に関わらずカウントを増やす
                 if (m.cleared) {
                     clearedCount++;
                 }
+
+                // 2. サイトに表示しない設定(E列)なら、画面へのマスの描画だけスキップする
+                if (!m.visible) return;
 
                 htmlString += `
                     <div class="mission-item ${m.cleared ? 'cleared' : ''}">
