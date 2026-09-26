@@ -49,23 +49,7 @@
             font-size: 32px;
         }
 
-        /* スコアボード */
-        .score-board {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #2a2a2a;
-            border-radius: 8px;
-            border: 2px solid #333;
-        }
-        .score-number {
-            color: #ff007f;
-            font-size: 40px;
-            line-height: 1;
-        }
-
-        /* 右側の金額表示専用 */
+        /* 右側の給料表示 */
         .money-board {
             text-align: center;
             padding: 40px;
@@ -111,13 +95,7 @@
         }
         .mission-name {
             font-size: 14px;
-            margin-bottom: 5px;
             font-weight: bold;
-        }
-        .mission-points {
-            font-weight: bold;
-            color: #00ffff;
-            font-size: 20px;
         }
 
         #status {
@@ -133,18 +111,15 @@
 </head>
 <body>
 
-    <!-- 左画面：ミッション（問） -->
+    <!-- 左画面：ミッション状況 -->
     <div id="left-panel">
         <h1>MISSION STATUS</h1>
-        <div class="score-board">
-            TOTAL <span class="score-number" id="total-score">0</span> 問
-        </div>
         <div id="mission-container">
             <p style="text-align:center; grid-column: 1 / -1;">データを読み込み中...</p>
         </div>
     </div>
 
-   <!-- 右画面：給料（円） -->
+    <!-- 右画面：給料（円） -->
     <div id="right-panel">
         <h2>SALARY</h2>
         <div class="money-board">
@@ -155,14 +130,13 @@
     
     <div id="status">通信待機中...</div>
 
-  <script>
+    <script>
         // ▼▼▼ ここにGASのURLを貼り直してください ▼▼▼
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
         
-        let isFetching = false; // 通信渋滞を防ぐためのストッパー
+        let isFetching = false;
 
         async function fetchData() {
-            // もしすでに通信中なら、新しいリクエストは送らずにスキップする
             if (isFetching) return; 
             isFetching = true;
 
@@ -177,7 +151,6 @@
                 console.error("通信エラー:", error);
                 document.getElementById('status').innerText = "通信エラーが発生しました。";
             } finally {
-                // 通信が終わったらストッパーを解除し、そこから「5秒後」に次を実行する
                 isFetching = false;
                 setTimeout(fetchData, 5000); 
             }
@@ -185,27 +158,23 @@
 
         function render(data) {
             const container = document.getElementById('mission-container');
-            const scoreElement = document.getElementById('total-score');
             
-            scoreElement.innerText = data.totalPoints;
-
-            // 100問分の画面パーツを裏側で一気に作ってから、最後に1回だけ画面に貼り付ける（超高速化）
+            // 「問」の表示を完全に削除し、ミッション名と状態だけを描画
             let htmlString = "";
             data.missions.forEach(m => {
                 htmlString += `
                     <div class="mission-item ${m.cleared ? 'cleared' : ''}">
                         <div class="mission-name">${m.cleared ? '✅' : '🔒'}<br>${m.name}</div>
-                        <div class="mission-points">${m.points} 問</div>
                     </div>
                 `;
             });
             container.innerHTML = htmlString;
 
+            // 右側の給料更新
             const moneyElement = document.getElementById('total-money');
             moneyElement.innerText = data.totalMoney;
         }
 
-        // 初回のデータ取得をスタート
         fetchData();
 
     </script>
