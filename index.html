@@ -156,11 +156,12 @@
     <div id="status">通信待機中...</div>
 
     <script>
-      const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
         
         let isFetching = false;
-        let lastDataString = ""; // ▼追加：前回のデータを覚えておくための箱
+        let lastDataString = ""; // 前回のデータを覚えておくための箱
 
+        // ▼ データを裏側から取ってくる関数（軽量化版）
         async function fetchData() {
             if (isFetching) return; 
             isFetching = true;
@@ -169,7 +170,7 @@
                 const response = await fetch(GAS_URL);
                 const data = await response.json();
                 
-                // ▼追加：スプレッドシートのデータが、前回と「全く同じ」かチェック
+                // スプレッドシートのデータが、前回と「全く同じ」かチェック
                 const currentDataString = JSON.stringify(data);
                 
                 if (lastDataString !== currentDataString) {
@@ -188,6 +189,42 @@
             }
         }
 
+        // ▼ 画面にマス目と給料を描き出す関数（これが消えてしまっていました！）
+        function render(data) {
+            const container = document.getElementById('mission-container');
+            const countElement = document.getElementById('cleared-count');
+            
+            let htmlString = "";
+            let clearedCount = 0; 
+
+            data.missions.forEach(m => {
+                // 1. まず、クリア済み(D列)なら表示・非表示に関わらずカウントを増やす
+                if (m.cleared) {
+                    clearedCount++;
+                }
+
+                // 2. サイトに表示しない設定(E列)なら、画面へのマスの描画だけスキップする
+                if (!m.visible) return;
+
+                htmlString += `
+                    <div class="mission-item ${m.cleared ? 'cleared' : ''}">
+                        <div class="mission-name">
+                            ${m.cleared ? '✅' : '🔒'}
+                            <div class="m-name-text">${m.name}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = htmlString;
+            countElement.innerText = clearedCount; 
+
+            // 右側の給料更新
+            const moneyElement = document.getElementById('total-money');
+            moneyElement.innerText = data.totalMoney;
+        }
+
+        // ▼ 一番最初に通信をスタートさせる合図
         fetchData();
 
     </script>
