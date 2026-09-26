@@ -156,9 +156,10 @@
     <div id="status">通信待機中...</div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
+      const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
         
         let isFetching = false;
+        let lastDataString = ""; // ▼追加：前回のデータを覚えておくための箱
 
         async function fetchData() {
             if (isFetching) return; 
@@ -168,49 +169,23 @@
                 const response = await fetch(GAS_URL);
                 const data = await response.json();
                 
-                render(data);
-                document.getElementById('status').innerText = "🟢通信状態：良好🟢";
-            } catch (error) {
-                console.error("通信エラー:", error);
-                document.getElementById('status').innerText = "🟥通信エラーが発生しました";
-            } finally {
-                isFetching = false;
-                setTimeout(fetchData, 2000); // 2秒間隔で高速更新
-            }
-        }
-
-        function render(data) {
-            const container = document.getElementById('mission-container');
-            const countElement = document.getElementById('cleared-count');
-            
-            let htmlString = "";
-            let clearedCount = 0; 
-
-            data.missions.forEach(m => {
-                // 1. まず、クリア済み(D列)なら表示・非表示に関わらずカウントを増やす
-                if (m.cleared) {
-                    clearedCount++;
+                // ▼追加：スプレッドシートのデータが、前回と「全く同じ」かチェック
+                const currentDataString = JSON.stringify(data);
+                
+                if (lastDataString !== currentDataString) {
+                    // データに変化があった時「だけ」画面を書き換える！
+                    render(data);
+                    lastDataString = currentDataString; // 最新データを記憶
                 }
 
-                // 2. サイトに表示しない設定(E列)なら、画面へのマスの描画だけスキップする
-                if (!m.visible) return;
-
-                htmlString += `
-                    <div class="mission-item ${m.cleared ? 'cleared' : ''}">
-                        <div class="mission-name">
-                            ${m.cleared ? '✅' : '🔒'}
-                            <div class="m-name-text">${m.name}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = htmlString;
-            countElement.innerText = clearedCount; 
-
-            // 右側の給料更新
-            const moneyElement = document.getElementById('total-money');
-            moneyElement.innerText = data.totalMoney;
+                document.getElementById('status').innerText = "通信状態：良好🟢";
+            } catch (error) {
+                console.error("通信エラー:", error);
+                document.getElementById('status').innerText = "通信エラーが発生しました🔴";
+            } finally {
+                isFetching = false;
+                setTimeout(fetchData, 2000); // 2秒間隔でも、変化がなければ処理ゼロなので超軽い！
+            }
         }
 
         fetchData();
