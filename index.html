@@ -169,10 +169,10 @@
                 const data = await response.json();
                 
                 render(data);
-                document.getElementById('status').innerText = "通信状態：良好🟢";
+                document.getElementById('status').innerText = "🟢通信状態：良好🟢";
             } catch (error) {
                 console.error("通信エラー:", error);
-                document.getElementById('status').innerText = "通信エラーが発生しました🔴";
+                document.getElementById('status').innerText = "🟥通信エラーが発生しました";
             } finally {
                 isFetching = false;
                 setTimeout(fetchData, 2000); // 2秒間隔で高速更新
