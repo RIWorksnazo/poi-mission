@@ -5,20 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ポイすてっ！2 - MISSION MONITOR</title>
     <style>
-        /* アングラ×ポップなダークデザイン */
         body {
             background-color: #1a1a1a;
             color: #eeeeee;
             font-family: 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
-            padding: 20px;
-            /* 1画面に収めるための設定 */
+            padding: 0;
             height: 100vh;
-            box-sizing: border-box;
             display: flex;
-            flex-direction: column;
+            box-sizing: border-box;
             overflow: hidden;
         }
+
+        /* 左右分割レイアウト */
+        #left-panel {
+            width: 50%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #444;
+        }
+        #right-panel {
+            width: 50%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #111;
+        }
+
         h1 {
             text-align: center;
             color: #00ffff;
@@ -26,6 +42,14 @@
             margin: 0 0 10px 0;
             font-size: 28px;
         }
+        h2 {
+            color: #ffcc00;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+
+        /* スコアボード */
         .score-board {
             text-align: center;
             font-weight: bold;
@@ -40,17 +64,33 @@
             font-size: 40px;
             line-height: 1;
         }
-        
-        /* ▼▼▼ マス目（グリッド）レイアウト ▼▼▼ */
+
+        /* 右側の金額表示専用 */
+        .money-board {
+            text-align: center;
+            padding: 40px;
+            background: #2a2a2a;
+            border-radius: 15px;
+            border: 4px solid #ffcc00;
+            box-shadow: 0 0 30px rgba(255, 204, 0, 0.2);
+        }
+        .money-number {
+            color: #ffcc00;
+            font-size: 90px;
+            font-weight: bold;
+            line-height: 1;
+            margin: 10px 0;
+        }
+
+        /* マス目レイアウト */
         #mission-container {
             display: grid;
-            /* 列数を自動調整し、マスを敷き詰める */
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            /* 縦幅も画面の余白に合わせて均等に伸ばす */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             grid-auto-rows: 1fr;
-            gap: 15px;
+            gap: 10px;
             flex-grow: 1;
             padding: 5px;
+            overflow-y: auto;
         }
         .mission-item {
             background: #252525;
@@ -65,84 +105,97 @@
             transition: all 0.3s;
         }
         .mission-item.cleared {
-            border-color: #ff007f;
-            background: #331424;
-            box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+            border-color: #00ffff;
+            background: #0d2b2b;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
         }
         .mission-name {
-            font-size: 16px;
-            margin-bottom: 8px;
+            font-size: 14px;
+            margin-bottom: 5px;
             font-weight: bold;
         }
         .mission-points {
             font-weight: bold;
             color: #00ffff;
-            font-size: 22px;
+            font-size: 20px;
         }
-        /* ▲▲▲ マス目の設定ここまで ▲▲▲ */
 
         #status {
             text-align: center;
             color: #888;
             font-size: 12px;
             margin-top: 10px;
+            width: 100%;
+            position: absolute;
+            bottom: 5px;
         }
     </style>
 </head>
 <body>
 
-    <h1>MISSION STATUS</h1>
-
-    <div class="score-board">
-        TOTAL <span class="score-number" id="total-score">0</span> pt
+    <!-- 左画面：ミッション（問） -->
+    <div id="left-panel">
+        <h1>MISSION STATUS</h1>
+        <div class="score-board">
+            TOTAL <span class="score-number" id="total-score">0</span> 問
+        </div>
+        <div id="mission-container">
+            <p style="text-align:center; grid-column: 1 / -1;">データを読み込み中...</p>
+        </div>
     </div>
 
-    <div id="mission-container">
-        <p style="text-align:center; grid-column: 1 / -1;">データを読み込み中...</p>
+    <!-- 右画面：料金（円） -->
+    <div id="right-panel">
+        <h2>PENALTY</h2>
+        <div class="money-board">
+            <div style="font-size: 24px; color: #ccc;">現在の加算料金</div>
+            <div class="money-number"><span id="total-money">0</span> 円</div>
+        </div>
     </div>
     
     <div id="status">通信待機中...</div>
 
-   <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
+    <script>
+        // ▼▼▼ ここに新しいGASのURLを貼り直してください ▼▼▼
+        const GAS_URL = "ここにURLを貼り付けます";
 
         async function fetchData() {
             try {
                 document.getElementById('status').innerText = "更新中...";
                 const response = await fetch(GAS_URL);
-                const missions = await response.json();
+                const data = await response.json();
                 
-                render(missions);
+                render(data);
                 document.getElementById('status').innerText = "最新のデータです";
             } catch (error) {
                 console.error("通信エラー:", error);
-                document.getElementById('status').innerText = "通信エラーが発生しました。URLや設定を確認してください。";
+                document.getElementById('status').innerText = "通信エラーが発生しました。";
             }
         }
 
-        function render(missions) {
+        function render(data) {
+            // ミッションと「問」の描画
             const container = document.getElementById('mission-container');
             const scoreElement = document.getElementById('total-score');
             
             container.innerHTML = '';
-            let totalScore = 0;
+            scoreElement.innerText = data.totalPoints; // GASで計算された合計問数
 
-            missions.forEach(m => {
-                if (m.cleared) totalScore += m.points;
-
+            data.missions.forEach(m => {
                 const div = document.createElement('div');
                 div.className = `mission-item ${m.cleared ? 'cleared' : ''}`;
                 div.innerHTML = `
                     <div class="mission-name">${m.cleared ? '✅' : '🔒'}<br>${m.name}</div>
-                    <div class="mission-points">${m.points} pt</div>
+                    <div class="mission-points">${m.points} 問</div>
                 `;
                 container.appendChild(div);
             });
 
-            scoreElement.innerText = totalScore;
+            // 料金「円」の描画
+            const moneyElement = document.getElementById('total-money');
+            moneyElement.innerText = data.totalMoney; // GASで計算された合計金額
         }
 
-        // if文を消し去り、直接実行させる
         fetchData();
         setInterval(fetchData, 5000);
 
