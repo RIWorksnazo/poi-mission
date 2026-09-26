@@ -155,11 +155,17 @@
     
     <div id="status">通信待機中...</div>
 
-    <script>
-        // ▼▼▼ ここに新しいGASのURLを貼り直してください ▼▼▼
+  <script>
+        // ▼▼▼ ここにGASのURLを貼り直してください ▼▼▼
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
+        
+        let isFetching = false; // 通信渋滞を防ぐためのストッパー
 
         async function fetchData() {
+            // もしすでに通信中なら、新しいリクエストは送らずにスキップする
+            if (isFetching) return; 
+            isFetching = true;
+
             try {
                 document.getElementById('status').innerText = "更新中...";
                 const response = await fetch(GAS_URL);
@@ -170,34 +176,37 @@
             } catch (error) {
                 console.error("通信エラー:", error);
                 document.getElementById('status').innerText = "通信エラーが発生しました。";
+            } finally {
+                // 通信が終わったらストッパーを解除し、そこから「5秒後」に次を実行する
+                isFetching = false;
+                setTimeout(fetchData, 5000); 
             }
         }
 
         function render(data) {
-            // ミッションと「問」の描画
             const container = document.getElementById('mission-container');
             const scoreElement = document.getElementById('total-score');
             
-            container.innerHTML = '';
-            scoreElement.innerText = data.totalPoints; // GASで計算された合計問数
+            scoreElement.innerText = data.totalPoints;
 
+            // 100問分の画面パーツを裏側で一気に作ってから、最後に1回だけ画面に貼り付ける（超高速化）
+            let htmlString = "";
             data.missions.forEach(m => {
-                const div = document.createElement('div');
-                div.className = `mission-item ${m.cleared ? 'cleared' : ''}`;
-                div.innerHTML = `
-                    <div class="mission-name">${m.cleared ? '✅' : '🔒'}<br>${m.name}</div>
-                    <div class="mission-points">${m.points} 問</div>
+                htmlString += `
+                    <div class="mission-item ${m.cleared ? 'cleared' : ''}">
+                        <div class="mission-name">${m.cleared ? '✅' : '🔒'}<br>${m.name}</div>
+                        <div class="mission-points">${m.points} 問</div>
+                    </div>
                 `;
-                container.appendChild(div);
             });
+            container.innerHTML = htmlString;
 
-            // 料金「円」の描画
             const moneyElement = document.getElementById('total-money');
-            moneyElement.innerText = data.totalMoney; // GASで計算された合計金額
+            moneyElement.innerText = data.totalMoney;
         }
 
+        // 初回のデータ取得をスタート
         fetchData();
-        setInterval(fetchData, 5000);
 
     </script>
 </body>
