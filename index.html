@@ -103,10 +103,8 @@
     
     <div id="status">通信待機中...</div>
 
-    <script>
-        // ▼▼▼ ここにGASのURLを貼り直してください ▼▼▼
+   <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
-        // ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲
 
         async function fetchData() {
             try {
@@ -144,12 +142,10 @@
             scoreElement.innerText = totalScore;
         }
 
-        if(GAS_URL !== "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec") {
-            fetchData();
-            setInterval(fetchData, 5000);
-        } else {
-            document.getElementById('mission-container').innerHTML = "<p style='text-align:center;color:red;grid-column:1/-1;'>GASのURLが設定されていません</p>";
-        }
+        // if文を消し去り、直接実行させる
+        fetchData();
+        setInterval(fetchData, 5000);
+
     </script>
 </body>
 </html>
