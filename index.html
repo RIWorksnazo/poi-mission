@@ -199,19 +199,26 @@
             isFetching = true;
 
             try {
-                document.getElementById('status').innerText = "更新中...";
+                // ▼変更：「更新中...」と毎回表示させない（チカチカすると重く感じるため）
+                // document.getElementById('status').innerText = "更新中..."; 
+                
                 const response = await fetch(GAS_URL);
                 const data = await response.json();
                 
                 render(data);
-                document.getElementById('status').innerText = "最新のデータです";
+                
+                // ▼変更：通信が成功している間は、目立たない文字にしておく
+                document.getElementById('status').innerText = "通信状態：良好🟢";
             } catch (error) {
                 console.error("通信エラー:", error);
-                document.getElementById('status').innerText = "通信エラーが発生しました。";
+                document.getElementById('status').innerText = "通信エラーが発生しました🔴";
             } finally {
                 isFetching = false;
-                setTimeout(fetchData, 5000); 
+                
+                // ▼変更：5000（5秒）から 2000（2秒）に短縮！
+                setTimeout(fetchData, 2000); 
             }
+        }
         }
 
         function render(data) {
