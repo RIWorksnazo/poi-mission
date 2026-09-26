@@ -179,19 +179,18 @@
     
     <div id="status">通信待機中...</div>
 
-    <script>
+   <script>
         // ▼▼▼ ここにGASのURLを貼り直してください ▼▼▼
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
         
         let isFetching = false;
 
-        // ▼▼ 追加：スイッチを押した時の動作 ▼▼
         document.getElementById('toggle-names').addEventListener('change', function(e) {
             const container = document.getElementById('mission-container');
             if (e.target.checked) {
-                container.classList.remove('hide-names'); // チェックあり：名前を表示
+                container.classList.remove('hide-names');
             } else {
-                container.classList.add('hide-names');    // チェックなし：名前を隠す
+                container.classList.add('hide-names');
             }
         });
 
@@ -220,10 +219,12 @@
             const countElement = document.getElementById('cleared-count');
             
             let htmlString = "";
-            let clearedCount = 0; // 追加：クリアした数を数える変数
+            let clearedCount = 0; 
 
             data.missions.forEach(m => {
-                // チェックがついていたら（クリアしていたら）＋1する
+                // ▼▼ 追加：スプレッドシートのD列にチェックが無い場合は、画面に出さずにスキップする ▼▼
+                if (!m.visible) return;
+
                 if (m.cleared) {
                     clearedCount++;
                 }
@@ -239,7 +240,7 @@
             });
             
             container.innerHTML = htmlString;
-            countElement.innerText = clearedCount; // クリア数を画面に反映
+            countElement.innerText = clearedCount; 
 
             // 右側の給料更新
             const moneyElement = document.getElementById('total-money');
