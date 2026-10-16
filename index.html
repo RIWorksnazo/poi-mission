@@ -3,163 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ミッションステータス</title>
+<title>ポイすてっ！2 ステータスモニター</title>
 <style>
-  :root {
-    /* 既存のサイトの雰囲気に合わせてここの色を変更してください */
-    --bg-color: #1e1e1e;       /* 背景色（現在はダーク系） */
-    --panel-bg: #2a2a2a;       /* パネルの背景色 */
-    --text-main: #ffffff;      /* メイン文字色 */
-    --text-sub: #aaaaaa;       /* サブ文字色 */
-    --accent-time: #4facfe;    /* 時間のアクセント色 */
-    --accent-solved: #43e97b;  /* 問題数のアクセント色 */
-    --accent-price: #fa709a;   /* 料金のアクセント色 */
-  }
-
   body {
+    background-color: #fdfaf0; /* 元の優しいクリーム色の背景 */
     margin: 0;
-    padding: 0;
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
     height: 100vh;
     display: flex;
     flex-direction: column;
+    justify-content: space-evenly; /* 3つの箱を縦に均等配置 */
+    align-items: center;
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    padding: 2vh 0;
+    box-sizing: border-box;
+  }
+
+  /* 3つのボックスの共通スタイル（元のUIを完全再現） */
+  .status-box {
+    width: 90%;
+    height: 28vh; /* 画面の約3割の高さに巨大化 */
+    border-radius: 20px; /* 元の丸み */
+    display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
-  }
-
-  /* 大画面用の3連グリッドレイアウト */
-  .dashboard {
-    display: flex;
-    justify-content: space-between;
-    width: 95vw;
-    gap: 2vw;
-  }
-
-  .panel {
-    background-color: var(--panel-bg);
-    border-radius: 20px;
-    flex: 1;
-    padding: 4vh 2vw;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .panel-title {
-    font-size: 3vw;
+    font-size: 6vw; /* モニター幅に合わせて文字を巨大化 */
     font-weight: bold;
-    color: var(--text-sub);
-    margin-bottom: 2vh;
-    letter-spacing: 0.1em;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
   }
 
-  .panel-value {
-    font-size: 8vw;
-    font-weight: bold;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums; /* 数字の幅を等間隔にして揺れを防ぐ */
+  /* 赤枠のタイマー */
+  .box-timer {
+    background-color: #ffffff;
+    color: #c0392b;
+    border: 1vw solid #c0392b; /* 太い赤枠 */
   }
 
-  .time-color { color: var(--accent-time); }
-  .solved-color { color: var(--accent-solved); }
-  .price-color { color: var(--accent-price); }
-
-  .unit {
-    font-size: 3vw;
-    margin-left: 0.5vw;
+  /* 緑の問題数 */
+  .box-solved {
+    background-color: #58b970;
+    color: #ffffff;
   }
 
-  /* 運営用の操作パネル（本番中は目立たないように配置） */
-  .controls {
-    position: fixed;
-    bottom: 2vh;
-    opacity: 0.2; /* 普段は薄くしておく */
-    transition: opacity 0.3s;
-  }
-  .controls:hover {
-    opacity: 1; /* マウスオーバーで表示 */
-  }
-  button {
-    font-size: 1.5rem;
-    padding: 10px 20px;
-    margin: 0 10px;
-    cursor: pointer;
+  /* オレンジの給料 */
+  .box-salary {
+    background-color: #f39c12;
+    color: #ffffff;
   }
 </style>
 </head>
 <body>
 
-  <div class="dashboard">
-    <!-- 経過時間 -->
-    <div class="panel">
-      <div class="panel-title">経過時間</div>
-      <div class="panel-value time-color" id="time-display">00:00</div>
-    </div>
-
-    <!-- 解いた問題数 -->
-    <div class="panel">
-      <div class="panel-title">解いた問題数</div>
-      <div class="panel-value solved-color">
-        <span id="solved-count">0</span><span class="unit">問</span>
-      </div>
-    </div>
-
-    <!-- 料金 -->
-    <div class="panel">
-      <div class="panel-title">料金</div>
-      <div class="panel-value price-color">
-        <span class="unit">¥</span><span id="price-display">0</span>
-      </div>
-    </div>
+  <div class="status-box box-timer" id="timer-display">
+    PAUSE 00:00
   </div>
-
-  <!-- 運営用コントロール（既存のGASやキーボード操作がある場合は不要です） -->
-  <div class="controls">
-    <button onclick="startTimer()">時間開始</button>
-    <button onclick="addSolved()">問題クリア +1</button>
-    <button onclick="addPrice(500)">料金 +¥500</button>
+  
+  <div class="status-box box-solved">
+    現在解いた問題数：<span id="solved-count">0</span>問
+  </div>
+  
+  <div class="status-box box-salary">
+    現在の給料：¥<span id="salary-display">0</span>
   </div>
 
   <script>
-    // --- 経過時間の処理 ---
-    let startTime;
-    let timerInterval;
-    let isRunning = false;
+    // いただいたGASのWebアプリURL
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
 
-    function updateTime() {
-      const now = Date.now();
-      const diff = Math.floor((now - startTime) / 1000); // 秒数
-      const minutes = String(Math.floor(diff / 60)).padStart(2, '0');
-      const seconds = String(diff % 60).padStart(2, '0');
-      document.getElementById('time-display').innerText = `${minutes}:${seconds}`;
-    }
-
-    function startTimer() {
-      if (!isRunning) {
-        startTime = Date.now();
-        timerInterval = setInterval(updateTime, 1000);
-        isRunning = true;
+    // GASからデータを取得して画面を書き換える関数
+    async function fetchGasData() {
+      try {
+        const response = await fetch(GAS_URL);
+        const data = await response.json();
+        
+        // ※注意：GAS側が書き出すJSONの「キー名」に合わせて data.〇〇 を書き換えてください。
+        // （例として timer, solved, salary という名前でデータが来ると仮定しています）
+        
+        // 1. タイマーの更新
+        if (data.timer !== undefined) {
+          document.getElementById('timer-display').innerText = data.timer;
+        }
+        
+        // 2. 問題数の更新
+        if (data.solved !== undefined) {
+          document.getElementById('solved-count').innerText = data.solved;
+        }
+        
+        // 3. 給料の更新（toLocaleStringで自動的に ¥37,500 のようにカンマがつきます）
+        if (data.salary !== undefined) {
+          document.getElementById('salary-display').innerText = Number(data.salary).toLocaleString();
+        }
+        
+      } catch (error) {
+        console.error("GASからのデータ取得に失敗しました:", error);
       }
     }
 
-    // --- 解いた問題数の処理 ---
-    let solvedCount = 0;
-    function addSolved() {
-      solvedCount++;
-      document.getElementById('solved-count').innerText = solvedCount;
-    }
-
-    // --- 料金の処理 ---
-    let currentPrice = 0;
-    function addPrice(amount) {
-      currentPrice += amount;
-      document.getElementById('price-display').innerText = currentPrice.toLocaleString(); // カンマ区切りにする
-    }
+    // 3秒ごとにGASにアクセスして最新の数字に更新する（早すぎるとGASの制限に引っかかるので3秒推奨です）
+    setInterval(fetchGasData, 3000);
+    
+    // ページを開いた瞬間に1回目の読み込みを実行
+    fetchGasData();
   </script>
 
 </body>
