@@ -1,232 +1,166 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ポイすてっ！2 - MISSION MONITOR</title>
-    <style>
-        body {
-            background-color: #1a1a1a;
-            color: #eeeeee;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ミッションステータス</title>
+<style>
+  :root {
+    /* 既存のサイトの雰囲気に合わせてここの色を変更してください */
+    --bg-color: #1e1e1e;       /* 背景色（現在はダーク系） */
+    --panel-bg: #2a2a2a;       /* パネルの背景色 */
+    --text-main: #ffffff;      /* メイン文字色 */
+    --text-sub: #aaaaaa;       /* サブ文字色 */
+    --accent-time: #4facfe;    /* 時間のアクセント色 */
+    --accent-solved: #43e97b;  /* 問題数のアクセント色 */
+    --accent-price: #fa709a;   /* 料金のアクセント色 */
+  }
 
-        /* 左右分割レイアウト */
-        #left-panel {
-            width: 50%;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            border-right: 2px solid #444;
-        }
-        #right-panel {
-            width: 50%;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: #111;
-        }
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
 
-        h1 {
-            text-align: center;
-            color: #00ffff;
-            letter-spacing: 2px;
-            margin: 0 0 10px 0;
-            font-size: 28px;
-        }
-        h2 {
-            color: #ffcc00;
-            letter-spacing: 3px;
-            margin-bottom: 20px;
-            font-size: 32px;
-        }
+  /* 大画面用の3連グリッドレイアウト */
+  .dashboard {
+    display: flex;
+    justify-content: space-between;
+    width: 95vw;
+    gap: 2vw;
+  }
 
-        .top-controls {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .total-cleared {
-            font-size: 24px;
-            color: #00ffff;
-            font-weight: bold;
-            margin-bottom: 10px;
-            background: #2a2a2a;
-            padding: 10px;
-            border-radius: 8px;
-            border: 2px solid #333;
-        }
+  .panel {
+    background-color: var(--panel-bg);
+    border-radius: 20px;
+    flex: 1;
+    padding: 4vh 2vw;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 
-        /* 右側の給料表示 */
-        .money-board {
-            text-align: center;
-            padding: 40px;
-            background: #2a2a2a;
-            border-radius: 15px;
-            border: 4px solid #ffcc00;
-            box-shadow: 0 0 30px rgba(255, 204, 0, 0.2);
-        }
-        .money-number {
-            color: #ffcc00;
-            font-size: 90px;
-            font-weight: bold;
-            line-height: 1;
-            margin: 10px 0;
-        }
+  .panel-title {
+    font-size: 3vw;
+    font-weight: bold;
+    color: var(--text-sub);
+    margin-bottom: 2vh;
+    letter-spacing: 0.1em;
+  }
 
-        /* マス目レイアウト */
-        #mission-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            grid-auto-rows: 1fr;
-            gap: 10px;
-            flex-grow: 1;
-            padding: 5px;
-            overflow-y: auto;
-        }
-        .mission-item {
-            background: #252525;
-            border-radius: 8px;
-            border: 3px solid #444;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 10px;
-            transition: all 0.3s;
-        }
-        .mission-item.cleared {
-            border-color: #00ffff;
-            background: #0d2b2b;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
-        }
-        .mission-name {
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .m-name-text {
-            margin-top: 5px;
-        }
+  .panel-value {
+    font-size: 8vw;
+    font-weight: bold;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums; /* 数字の幅を等間隔にして揺れを防ぐ */
+  }
 
-        #status {
-            text-align: center;
-            color: #888;
-            font-size: 12px;
-            margin-top: 10px;
-            width: 100%;
-            position: absolute;
-            bottom: 5px;
-        }
-    </style>
+  .time-color { color: var(--accent-time); }
+  .solved-color { color: var(--accent-solved); }
+  .price-color { color: var(--accent-price); }
+
+  .unit {
+    font-size: 3vw;
+    margin-left: 0.5vw;
+  }
+
+  /* 運営用の操作パネル（本番中は目立たないように配置） */
+  .controls {
+    position: fixed;
+    bottom: 2vh;
+    opacity: 0.2; /* 普段は薄くしておく */
+    transition: opacity 0.3s;
+  }
+  .controls:hover {
+    opacity: 1; /* マウスオーバーで表示 */
+  }
+  button {
+    font-size: 1.5rem;
+    padding: 10px 20px;
+    margin: 0 10px;
+    cursor: pointer;
+  }
+</style>
 </head>
 <body>
 
-    <!-- 左画面：ミッション状況 -->
-    <div id="left-panel">
-        <h1>MISSION STATUS</h1>
-        
-        <div class="top-controls">
-            <div class="total-cleared">
-                クリア数: <span id="cleared-count" style="font-size: 32px; color: #ff007f;">0</span> 問
-            </div>
-        </div>
-
-        <div id="mission-container">
-            <p style="text-align:center; grid-column: 1 / -1;">データを読み込み中...</p>
-        </div>
+  <div class="dashboard">
+    <!-- 経過時間 -->
+    <div class="panel">
+      <div class="panel-title">経過時間</div>
+      <div class="panel-value time-color" id="time-display">00:00</div>
     </div>
 
-    <!-- 右画面：給料（円） -->
-    <div id="right-panel">
-        <h2>現在の給料</h2>
-        <div class="money-board">
-            <div style="font-size: 24px; color: #ccc;"></div>
-            <div class="money-number"><span id="total-money">0</span> 円</div>
-        </div>
+    <!-- 解いた問題数 -->
+    <div class="panel">
+      <div class="panel-title">解いた問題数</div>
+      <div class="panel-value solved-color">
+        <span id="solved-count">0</span><span class="unit">問</span>
+      </div>
     </div>
-    
-    <div id="status">通信待機中...</div>
 
-    <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwL6vY1pA1vqbrq4bCLIVLdWGtKoXztcbxsi812AkzILF3eo54oJnh-fw2MCFttjUoh/exec";
-        
-        let isFetching = false;
-        let lastDataString = ""; // 前回のデータを覚えておくための箱
+    <!-- 料金 -->
+    <div class="panel">
+      <div class="panel-title">料金</div>
+      <div class="panel-value price-color">
+        <span class="unit">¥</span><span id="price-display">0</span>
+      </div>
+    </div>
+  </div>
 
-        // ▼ データを裏側から取ってくる関数（軽量化版）
-        async function fetchData() {
-            if (isFetching) return; 
-            isFetching = true;
+  <!-- 運営用コントロール（既存のGASやキーボード操作がある場合は不要です） -->
+  <div class="controls">
+    <button onclick="startTimer()">時間開始</button>
+    <button onclick="addSolved()">問題クリア +1</button>
+    <button onclick="addPrice(500)">料金 +¥500</button>
+  </div>
 
-            try {
-                const response = await fetch(GAS_URL);
-                const data = await response.json();
-                
-                // スプレッドシートのデータが、前回と「全く同じ」かチェック
-                const currentDataString = JSON.stringify(data);
-                
-                if (lastDataString !== currentDataString) {
-                    // データに変化があった時「だけ」画面を書き換える！
-                    render(data);
-                    lastDataString = currentDataString; // 最新データを記憶
-                }
+  <script>
+    // --- 経過時間の処理 ---
+    let startTime;
+    let timerInterval;
+    let isRunning = false;
 
-                document.getElementById('status').innerText = "通信状態：良好🟢";
-            } catch (error) {
-                console.error("通信エラー:", error);
-                document.getElementById('status').innerText = "通信エラーが発生しました🔴";
-            } finally {
-                isFetching = false;
-                setTimeout(fetchData, 2000); // 2秒間隔でも、変化がなければ処理ゼロなので超軽い！
-            }
-        }
+    function updateTime() {
+      const now = Date.now();
+      const diff = Math.floor((now - startTime) / 1000); // 秒数
+      const minutes = String(Math.floor(diff / 60)).padStart(2, '0');
+      const seconds = String(diff % 60).padStart(2, '0');
+      document.getElementById('time-display').innerText = `${minutes}:${seconds}`;
+    }
 
-        // ▼ 画面にマス目と給料を描き出す関数（これが消えてしまっていました！）
-        function render(data) {
-            const container = document.getElementById('mission-container');
-            const countElement = document.getElementById('cleared-count');
-            
-            let htmlString = "";
-            let clearedCount = 0; 
+    function startTimer() {
+      if (!isRunning) {
+        startTime = Date.now();
+        timerInterval = setInterval(updateTime, 1000);
+        isRunning = true;
+      }
+    }
 
-            data.missions.forEach(m => {
-                // 1. まず、クリア済み(D列)なら表示・非表示に関わらずカウントを増やす
-                if (m.cleared) {
-                    clearedCount++;
-                }
+    // --- 解いた問題数の処理 ---
+    let solvedCount = 0;
+    function addSolved() {
+      solvedCount++;
+      document.getElementById('solved-count').innerText = solvedCount;
+    }
 
-                // 2. サイトに表示しない設定(E列)なら、画面へのマスの描画だけスキップする
-                if (!m.visible) return;
+    // --- 料金の処理 ---
+    let currentPrice = 0;
+    function addPrice(amount) {
+      currentPrice += amount;
+      document.getElementById('price-display').innerText = currentPrice.toLocaleString(); // カンマ区切りにする
+    }
+  </script>
 
-                htmlString += `
-                    <div class="mission-item ${m.cleared ? 'cleared' : ''}">
-                        <div class="mission-name">
-                            ${m.cleared ? '✅' : '🔒'}
-                            <div class="m-name-text">${m.name}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = htmlString;
-            countElement.innerText = clearedCount; 
-
-            // 右側の給料更新
-            const moneyElement = document.getElementById('total-money');
-            moneyElement.innerText = data.totalMoney;
-        }
-
-        // ▼ 一番最初に通信をスタートさせる合図
-        fetchData();
-
-    </script>
 </body>
 </html>
