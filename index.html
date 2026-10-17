@@ -6,68 +6,38 @@
     <title>POISUTE 2 - INFO MONITOR</title>
     <style>
         body { 
-            margin: 0; padding: 20px; 
+            margin: 0; padding: 2vh 0; 
             background-color: #fdf6e3; 
             color: #333; 
             font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', Meiryo, sans-serif;
-            box-sizing: border-box; height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
+            box-sizing: border-box; height: 100vh; display: flex; flex-direction: column; overflow: hidden; justify-content: center;
         }
+        
+        /* 上の3つを縦に並べて画面いっぱいに巨大化 */
         .header-container {
-            display: flex; justify-content: space-between; align-items: stretch; gap: 20px; margin-bottom: 20px;
+            display: flex; flex-direction: column; justify-content: space-evenly; align-items: center; gap: 3vh; height: 95vh; margin-bottom: 0; width: 100%;
         }
+        
+        #global-timer, #score-display, #money-display {
+            flex: none; width: 90%; height: 28vh;
+            border-radius: 20px; display: flex; align-items: center; justify-content: center;
+        }
+        
         #global-timer {
-            flex: 0 0 auto;
-            background: #fff; border: 4px solid #ff5252; border-radius: 15px;
-            padding: 10px 25px; font-size: 32px; font-weight: bold; color: #ff5252;
-            box-shadow: 0 6px 0 #d32f2f; display: flex; align-items: center; justify-content: center;
-            flex-direction: column;
+            background: #fff; border: 1vw solid #ff5252; color: #ff5252; box-shadow: 0 10px 0 #d32f2f; flex-direction: column;
         }
-        .timer-time { font-size: 40px; letter-spacing: 2px; }
-        .timer-help { font-size: 14px; color: #888; font-weight: normal; margin-top: 5px; }
-        #global-timer.paused {
-            background: #ffebee; color: #b71c1c; border-color: #b71c1c; box-shadow: 0 6px 0 #7f0000;
-        }
+        .timer-time { font-size: 12vw; letter-spacing: 5px; font-weight: bold; font-variant-numeric: tabular-nums; }
+        .timer-help { display: none; } /* 不要な小文字を非表示 */
+        #global-timer.paused { background: #ffebee; color: #b71c1c; border-color: #b71c1c; box-shadow: 0 10px 0 #7f0000; }
 
-        #score-display { 
-            flex: 1; font-size: 2.8vw; font-weight: bold; color: #fff; 
-            background: #4caf50; border-radius: 15px;
-            padding: 15px; text-align: center; 
-            box-shadow: 0 6px 0 #388e3c; letter-spacing: 1px; margin: 0; display: flex; align-items: center; justify-content: center;
+        #score-display {
+            background: #4caf50; color: #fff; font-size: 7vw; font-weight: bold; box-shadow: 0 10px 0 #388e3c; letter-spacing: 2px;
         }
-
-        #money-display { 
-            flex: 1; font-size: 2.8vw; font-weight: bold; color: #fff; 
-            background: #ff9800; border-radius: 15px;
-            padding: 15px; text-align: center; 
-            box-shadow: 0 6px 0 #f57c00; letter-spacing: 1px; margin: 0; display: flex; align-items: center; justify-content: center;
-        }
-
-        #mission-container { display: flex; flex-direction: row; gap: 20px; flex: 1; overflow: hidden; }
-        .mission-column { 
-            flex: 1; background: #fff; border: 4px solid #4fc3f7; border-radius: 15px;
-            display: flex; flex-direction: column; box-shadow: 0 6px 0 #0288d1; overflow-y: auto; 
-        }
-        .mission-title { 
-            background: #4fc3f7; color: #fff; padding: 15px; font-size: 24px; font-weight: bold; text-align: center; 
-            letter-spacing: 2px; position: sticky; top: 0; z-index: 10; 
-        }
-        .mission-content { padding: 20px; font-size: 20px; line-height: 1.6; }
-        .mission-item { 
-            background: #f1f8e9; margin-bottom: 15px; border-radius: 10px; padding: 15px; border: 2px solid #c5e1a5;
-            transition: all 0.3s; font-weight: bold;
-        }
-        .mission-item::before { content: "⭐ "; color: #ffa000; }
         
-        .cleared { 
-            background: #eeeeee !important; 
-            border-color: #cccccc !important; 
-            color: #999 !important; 
-            text-decoration: line-through !important; 
+        #money-display {
+            background: #ff9800; color: #fff; font-size: 7vw; font-weight: bold; box-shadow: 0 10px 0 #f57c00; letter-spacing: 2px;
         }
-        .cleared::before { content: "✅ "; }
         
-        .hint-item { background: #fff9c4; border: 2px solid #fff59d; color: #e65100; }
-        .hint-item::before { content: "💡 "; }
         #footer-info { position: absolute; bottom: 10px; right: 20px; font-size: 18px; color: #666; z-index: 101; font-weight: bold; }
     </style>
 </head>
@@ -79,20 +49,9 @@
             <div class="timer-help"></div>
         </div>
         <div id="score-display">現在解いた問題数: 0問</div>
-        <div id="money-display">現在の給料: 0円</div>
+        <div id="money-display">現在の給料: ¥0</div>
     </div>
     
-    <div id="mission-container">
-        <div class="mission-column">
-            <div class="mission-title">現在挑戦中のMISSION</div>
-            <div class="mission-content" id="list-mission"></div>
-        </div>
-        <div class="mission-column">
-            <div class="mission-title">HINT / LOG</div>
-            <div class="mission-content" id="list-hint"></div>
-        </div>
-    </div>
-
     <div id="footer-info">
         <div id="status">SYS: STANDBY...</div>
     </div>
@@ -131,9 +90,7 @@
                 tPauseBegin = 0;
                 saveTimer();
             }
-            else if (e.key === 'Enter') {
-                location.reload(); // エンターキーでシンプルに画面をリロード
-            }
+            // エンターキーでのリロードを無効化（誤作動防止）
             updateTimerUI();
         });
 
@@ -163,60 +120,16 @@
             }
         }
 
-        // データを取得して画面を更新する関数
+        // GASからデータを取得して画面を更新
         async function fetchAndUpdate() {
             try {
-                // キャッシュを完全に回避するため "?t=現在時刻" をつけてリクエストする
+                // キャッシュを防ぐためにランダムなパラメータを付ける
                 const response = await fetch(GAS_URL + "?t=" + Date.now(), { cache: 'no-store' });
                 const data = await response.json();
                 
-                // 画面の数値を更新
+                // 表示を更新
                 document.getElementById('money-display').innerText = `現在の給料: ¥${data.totalMoney.toLocaleString()}`;
                 document.getElementById('score-display').innerText = `現在解いた問題数: ${data.totalQuestions}問`;
-
-                const listMission = document.getElementById('list-mission');
-                const listHint = document.getElementById('list-hint');
-                listMission.innerHTML = "";
-                listHint.innerHTML = "";
-
-                const currentSimulatedNow = tState === 'paused' ? tPauseBegin : Date.now();
-                const effectiveNow = currentSimulatedNow - tPauseTotal; 
-
-                data.missions.forEach(m => {
-                    if (m.visible && m.name) {
-                        const div = document.createElement('div');
-                        div.className = "mission-item" + (m.cleared ? " cleared" : "");
-                        div.innerText = m.name;
-                        
-                        if (m.hintColor && m.hintColor.trim() !== "") {
-                            div.style.backgroundColor = m.hintColor;
-                            div.style.borderColor = m.hintColor;
-                        }
-                        
-                        listMission.appendChild(div);
-                    }
-                    
-                    if (!m.cleared && m.startTimeMs > 0) {
-                        const hintElapsedMs = effectiveNow - m.startTimeMs; 
-                        const hintElapsedMinutes = Math.floor(hintElapsedMs / 60000); 
-                        
-                        m.hints.forEach(hint => {
-                            if (hint.text && hint.time > 0 && hintElapsedMinutes >= hint.time) {
-                                const hintDiv = document.createElement('div');
-                                hintDiv.className = "mission-item hint-item"; 
-                                hintDiv.innerText = hint.text;
-                                
-                                if (m.hintColor && m.hintColor.trim() !== "") {
-                                    hintDiv.style.backgroundColor = m.hintColor;
-                                    hintDiv.style.borderColor = m.hintColor;
-                                }
-                                
-                                listHint.appendChild(hintDiv);
-                            }
-                        });
-                    }
-                });
-
                 document.getElementById('status').innerText = "SYS: ONLINE 🟢";
             } catch (error) {
                 console.error(error);
@@ -227,7 +140,7 @@
         // 初回実行
         fetchAndUpdate();
 
-        // 1秒ごとに自動でサーバー（スプレッドシート）に見に行って画面を更新する
+        // 3秒ごとに自動更新
         setInterval(() => {
             updateTimerUI();
             fetchAndUpdate();
